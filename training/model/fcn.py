@@ -1,156 +1,55 @@
-# Build a VGG16 feature extractor and load the corresponding weights without the top layers for classification
-
-### Conv Block
-### VGG-16 feature extractor
-### Decoder FCN-8s
-
-
 import tensorflow as tf
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Layer, Conv2D, MaxPool2D, Conv2DTranspose, UpSampling2D, ReLU
-from tensorflow.keras.datasets import mnist
-from tensorflow.python.keras.layers.core import Dense, Flatten
+from tensorflow.keras.layers import Conv2D, Conv2DTranspose, add
 
-# ConvBlock -- conv(N, k, s, p) - conv(N, k, s, p) - maxpool(2, 2)
-class Conv2Block (Layer): 
-    def __init__ (self, filters: int, kernel_size, stride, padding, name: str, **kwargs):
-        super(Conv2Block, self).__init__(name= name, **kwargs)
 
-        self.filters = filters
-        
-        if isinstance(kernel_size, int):
-            self.kernel_size = (kernel_size, kernel_size)
-        elif all(map(lambda x: isinstance(x, int), kernel_size)):
-            self.kernel_size = kernel_size
-        else:
-            raise Exception("Wrong kernel_size type: (int, int) or int")
-        if isinstance(stride, int):
-            self.stride = (stride, stride)
-        elif all(map(lambda x: isinstance(x, int), stride)):
-            self.stride = stride
-        else:
-            raise Exception("Wrong stride type: (int, int) or int")
-        
-        self.padding = padding
+from training.model.ConvBlock import Conv2Block, Conv3Block
+from training.model.fcnBlock import FCNBlock
 
-    def build(self, input_shape): 
-
-        self.conv_1 = Conv2D(filters= self.filters, kernel_size= self.kernel_size, strides= self.stride, padding= self.padding, name="conv_1", input_shape= input_shape)
-        self.conv_2 = Conv2D(filters= self.filters, kernel_size= self.kernel_size, strides= self.stride, padding= self.padding, name= "conv_2")
-        self.max_pool = MaxPool2D(pool_size= (2, 2), strides= (2, 2))
-        super(Conv2Block, self).build(input_shape)
-
-    def call(self, input_tensor):
-        x = input_tensor
-        
-        x = self.conv_1(x)
-        x = tf.nn.relu(x)
-        x = self.conv_2(x)
-        x = tf.nn.relu(x)
-        x = self.max_pool(x)
-    
-        return x
-
-# ConvBlock -- conv(N, k, s, p) - conv(N, k, s, p) - conv(N, k, s, p) - maxpool(2, 2)
-class Conv3Block (Layer): 
-    def __init__ (self, filters: int, kernel_size, stride, padding, name: str):
-        super(Conv3Block, self).__init__(name= name)
-
-        self.filters = filters
-        
-        if isinstance(kernel_size, int):
-            self.kernel_size = (kernel_size, kernel_size)
-        elif all(map(lambda x: isinstance(x, int), kernel_size)):
-            self.kernel_size = kernel_size
-        else:
-            raise Exception("Wrong kernel_size type: (int, int) or int")
-        if isinstance(stride, int):
-            self.stride = (stride, stride)
-        elif all(map(lambda x: isinstance(x, int), stride)):
-            self.stride = stride
-        else:
-            raise Exception("Wrong stride type: (int, int) or int")
-        
-        self.padding = padding
-
-    def build(self, input_shape): 
-
-        self.conv_1 = Conv2D(filters= self.filters, kernel_size= self.kernel_size, strides= self.stride, padding= self.padding, name="conv_1")
-        self.conv_2 = Conv2D(filters= self.filters, kernel_size= self.kernel_size, strides= self.stride, padding= self.padding, name= "conv_2")
-        self.conv_3 = Conv2D(filters= self.filters, kernel_size= self.kernel_size, strides= self.stride, padding= self.padding, name= "conv_3")
-        self.max_pool = MaxPool2D(pool_size= (2, 2), strides= (2, 2))
-        super(Conv3Block, self).build(input_shape)
-
-    def call(self, input_tensor):
-        x = input_tensor
-        
-        x = self.conv_1(x)
-        x = tf.nn.relu(x)
-        x = self.conv_2(x)
-        x = tf.nn.relu(x)
-        x = self.conv_3(x)
-        x = tf.nn.relu(x)
-        x = self.max_pool(x)
-    
-        return x
-    
 class FCN (Model):
-    def __init__(self):
-        super(FCN, self).__init__()
+    def __init__(self, name= "FCN", **kwargs):
+        super(FCN, self).__init__(name= name, **kwargs)
 
     def build (self, input_shape):
 
         ### Encoder
-        # Set pre-trained weights for VGG16 feature extractor part of network
-        self.conv_2_block_1 = Conv2Block(64, 3, 1, "same", "conv_2_block_1", input_shape= input_shape)
-        
-        #self.conv_block_1.layers[0].set_weights()
-        #self.conv_2_block_2 = Conv2Block(64, 3, 1, "same", "conv_2_block_2")
-        # set weights
-        #self.conv_3_block_1 = Conv3Block(128, 3, 1, "same", "conv_3_block_1")
-
-        #self.conv_3_block_2 = Conv3Block(256, 3, 1, "same", "conv_3_block_2")
-
-        #self.conv_3_block_3 = Conv3Block(512, 3, 1, "same", "conv_3_block_2")
-
-        #self.conv_3_block_4 = Conv3Block(512, 3, 1, "same", "conv_3_block_3")
+        self.conv_2_block_1 = Conv2Block(64, 3, 1, "same", "conv_2_block_1")
+        self.conv_2_block_2 = Conv2Block(128, 3, 1, "same", "conv_2_block_2")
+        self.conv_3_block_3 = Conv3Block(256, 3, 1, "same", "conv_3_block_3")
+        self.conv_3_block_4 = Conv3Block(512, 3, 1, "same", "conv_3_block_4")
+        self.conv_3_block_5 = Conv3Block(512, 3, 1, "same", "conv_3_block_5")
         
         ### Decoder
-        #self.conv_
-
-        self.flatten_1 = Flatten()
-        self.dense_1 = Dense(10, activation= "softmax")
+        self.fcn_block = FCNBlock(name= "FCNBlock")
+        self.conv_f4 = Conv2D(filters= 3, kernel_size= 1, padding= "same",
+                                activation= None, name= "conv_f4")
+        self.conv_f3 = Conv2D(filters= 3, kernel_size= 1, padding= "same",
+                                activation= None, name= "conv_f3")
         
+        self.conv_transpose_f4 = Conv2DTranspose(filters=3, kernel_size=4, strides=2,
+                                use_bias=False, padding='same', activation='relu', name= "conv_transpose_f3")
+
+        self.conv_transpose_f3 = Conv2DTranspose(filters=3, kernel_size=16, strides=8,
+                              padding='same', activation=None, name= "conv_transpose_f3")
+
         super(FCN, self).build(input_shape)
 
     def call (self, input_tensor):
         x = input_tensor
-        x = self.conv_2_block_1(x)
-        x = self.flatten_1(x)
-        x = self.dense_1(x)
-        return x
+        f1 = self.conv_2_block_1(x)
+        f2 = self.conv_2_block_2(f1)
+        f3 = self.conv_3_block_3(f2)
+        f4 = self.conv_3_block_4(f3)
+        f5 = self.conv_3_block_5(f4)
 
-with tf.device("CPU"):
-    #input_tensor = tf.random.uniform(shape= [2, 28, 28, 1], minval= 0, maxval= 1)
-    #convblock = Conv2Block(12, 1, (1,1), 'same', "hello")
-    #output = convblock(input_tensor)
-    #weights= tf.random.uniform(shape=[2, 1, 1, 1, 12])
-    #print(convblock.layers[0].output)
-    #print(convblock.layers[0].set_weights(weights))
-    #print(output)
+        conv_f4 = self.conv_f4(f4)
+        fcn_transpose_1 = self.fcn_block(f5)
 
-    (x_train, y_train), (x_test, y_test) = mnist.load_data()
+        merge_1 = add([conv_f4, fcn_transpose_1])
+        fcn_transpose_2 = self.conv_transpose_f4(merge_1)
 
-    x_train = x_train.reshape((x_train.shape[0],28, 28, 1))
-    x_train_processed = x_train[:200, :, :]/255.0
-    y_train_processed = y_train[:200]
+        conv_f3 = self.conv_f3(f3)
+        merge_2 = add([conv_f3, fcn_transpose_2])
 
-    model = FCN()
-
-    model.build(input_shape= (None, 28, 28, 1))
-    model.compile(optimizer= 'sgd', loss= tf.keras.losses.SparseCategoricalCrossentropy(), metrics= ['accuracy'])
-    model.summary()
-    #model.fit(x_train_processed, y_train_processed, epochs= 10)
-
-    #print(model(x_train_processed[:2, :, :]))
-    #print(y_train_processed[:2])
+        output = self.conv_transpose_f3(merge_2)
+        return output

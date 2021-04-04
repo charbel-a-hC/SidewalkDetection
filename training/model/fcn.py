@@ -20,16 +20,19 @@ class FCN (Model):
         self.conv_3_block_5 = Conv3Block(512, 3, 1, "same", "conv_3_block_5")
         
         ### Decoder
+        ###################################################
+        ## Adjust nb of output channels to nb of classes ##
+        ###################################################
         self.fcn_block = FCNBlock(name= "FCNBlock")
-        self.conv_f4 = Conv2D(filters= 3, kernel_size= 1, padding= "same",
+        self.conv_f4 = Conv2D(filters= ch_out, kernel_size= 1, padding= "same",
                                 activation= None, name= "conv_f4")
-        self.conv_f3 = Conv2D(filters= 3, kernel_size= 1, padding= "same",
+        self.conv_f3 = Conv2D(filters= ch_out, kernel_size= 1, padding= "same",
                                 activation= None, name= "conv_f3")
         
-        self.conv_transpose_f4 = Conv2DTranspose(filters=3, kernel_size=4, strides=2,
+        self.conv_transpose_f4 = Conv2DTranspose(filters=ch_out, kernel_size=4, strides=2,
                                 use_bias=False, padding='same', activation='relu', name= "conv_transpose_f3")
 
-        self.conv_transpose_f3 = Conv2DTranspose(filters=3, kernel_size=16, strides=8,
+        self.conv_transpose_f3 = Conv2DTranspose(filters=ch_out, kernel_size=16, strides=8,
                               padding='same', activation=None, name= "conv_transpose_f3")
 
         super(FCN, self).build(input_shape)

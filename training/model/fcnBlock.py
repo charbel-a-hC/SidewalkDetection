@@ -11,9 +11,9 @@ class FCNBlock (Layer):
         self.conv_2 = Conv2D(filters= 4086, kernel_size= 1, padding="same",
                                 activation= "relu")
         self.dropout_2 = Dropout(0.5)
-        self.conv_3 = Conv2D(filters=3, kernel_size=1, padding='same',
+        self.conv_3 = Conv2D(filters=ch_out, kernel_size=1, padding='same',
                       activation=None)
-        self.conv_transpose_1 = Conv2DTranspose(filters= 3, kernel_size= 4, strides= 2,
+        self.conv_transpose_1 = Conv2DTranspose(filters= ch_out, kernel_size= 4, strides= 2,
                                                 use_bias= False, padding= "same", activation= "relu")
         
         super(FCNBlock, self).build(input_shape)

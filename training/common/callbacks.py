@@ -1,10 +1,151 @@
 import os
 import collections
 import tensorflow as tf
-from tensorflow.keras.callbacks import TensorBoardImageGridCallback, SimpleLogCallback
+import matplotlib.pyplot as plt
+from training.data import SegmentationDataset
+from training.common import SegmentationLoss
 
-model_name = 'cityscapes_fcn8s'
-model_dir = os.path.join('models', model_name)
+class SimpleLogCallback(tf.keras.callbacks.Callback):
+    """ Keras callback for simple, denser console logs."""
+
+    def __init__(self, metrics_dict, val= False, val_data: SegmentationDataset = None, num_epochs='?', log_frequency=1,
+                 metric_string_template='\033[1m[[name]]\033[0m = \033[94m{[[value]]:5.3f}\033[0m'):
+        """
+        Initialize the Callback.
+        :param metrics_dict:            Dictionary containing mappings for metrics names/keys
+                                        e.g. {"accuracy": "acc", "val. accuracy": "val_acc"}
+        :param num_epochs:              Number of training epochs
+        :param log_frequency:           Log frequency (in epochs)
+        :param metric_string_template:  (opt.) String template to print each metric
+        """
+        super().__init__()
+
+        self.metrics_dict = collections.OrderedDict(metrics_dict)
+        self.num_epochs = num_epochs
+        self.log_frequency = log_frequency
+
+        # We build a format string to later print the metrics, (e.g. "Epoch 0/9: loss = 1.00; val-loss = 2.00")
+        log_string_template = 'Epoch {0:2}/{1}: '
+        separator = '; '
+
+        i = 2
+        for metric_name in self.metrics_dict:
+            templ = metric_string_template.replace('[[name]]', metric_name).replace('[[value]]', str(i))
+            log_string_template += templ + separator
+            i += 1
+
+        # We remove the "; " after the last element:
+        log_string_template = log_string_template[:-len(separator)]
+        self.log_string_template = log_string_template
+
+        self.val_data = val_data
+        self.val = val
+
+    def on_train_begin(self, logs=None):
+        print("Training: \033[92mstart\033[0m.")
+        
+
+    def on_train_end(self, logs=None):
+        print("Training: \033[91mend\033[0m.")
+
+    def on_epoch_end(self, epoch, logs={}):
+        if self.val:
+            y_pred = self.model.predict(self.val_data[0][0][:self.val_data.batch_size, :, :])
+            y_true = self.val_data[0][1][:self.val_data.batch_size, :, :]
+            total_loss = SegmentationLoss()(y_true= y_true, y_pred= y_pred)
+
+            logs["val_loss"] = total_loss.numpy()
+            logs["val_acc"] = 12
+            
+        if (epoch - 1) % self.log_frequency == 0 or epoch == self.num_epochs:
+            values = [logs[self.metrics_dict[metric_name]] for metric_name in self.metrics_dict]
+            print(self.log_string_template.format(epoch+1, self.num_epochs, *values))
+        
+
+
+
+
+
+#######################
+## Under development ##
+#######################
+"""
+class TensorBoardImageGridCallback(tf.keras.callbacks.Callback):
+    " Keras callback for generative models, to draw grids of
+        input/predicted/target images into Tensorboard every epoch.
+    "
+
+    def __init__(self, log_dir, input_images, target_images=None, tag='images',
+                 figsize=(10, 10), dpi=300, grayscale=False, transpose=False,
+                 preprocess_fn=None):
+        "
+        Initialize the Callback.
+        :param log_dir:         Folder to write the image summaries into
+        :param input_images:    List of input images to use for the grid
+        :param target_images:   (opt.) List of target images for the grid
+        :param tag:             Tag to name the Tensorboard summary
+        :param figsize:         Pyplot figure size for the grid
+        :param dpi:             Pyplot figure DPI
+        :param grayscale:       Flag to plot the images as grayscale
+        :param transpose:       Flag to transpose the image grid
+        :param preprocess_fn:   (opt.) Function to pre-process the
+                                input/predicted/target image lists before plotting
+        "
+        super().__init__()
+
+        self.summary_writer = tf.summary.create_file_writer(log_dir)
+
+        self.input_images, self.target_images = input_images, target_images
+        self.tag = tag
+        self.postprocess_fn = preprocess_fn
+
+        self.image_titles = ['images', 'predicted']
+        if self.target_images is not None:
+            self.image_titles.append('ground-truth')
+
+        # Initializing the figure:
+        self.fig = plt.figure(num=0, figsize=figsize, dpi=dpi)
+        self.grayscale = grayscale
+        self.transpose = transpose
+
+    def on_epoch_end(self, epoch, logs={}):
+        "
+        Plot into Tensorboard a grid of image results.
+        :param epoch:   Epoch num
+        :param logs:    (unused) Dictionary of loss/metrics value for the epoch
+        "
+
+        # Get predictions with current model:
+        predicted_images = self.model.predict_on_batch(self.input_images)
+        if self.postprocess_fn is not None:
+            input_images, predicted_images, target_images = self.postprocess_fn(
+                self.input_images, predicted_images, self.target_images)
+        else:
+            input_images, target_images = self.input_images, self.target_images
+
+        # Fill figure with images:
+        grid_imgs = [input_images, predicted_images]
+        if target_images is not None:
+            grid_imgs.append(target_images)
+        self.fig.clf()
+        self.fig = plot_image_grid(grid_imgs, titles=self.image_titles, figure=self.fig,
+                                   grayscale=self.grayscale, transpose=self.transpose)
+
+        with self.summary_writer.as_default():
+            # Transform into summary:
+            figure_summary = figure_to_summary(self.fig, self.tag, epoch)
+
+            # # Finally, log it:
+            # self.summary_writer.add_summary(figure_summary, global_step=epoch)
+        self.summary_writer.flush()
+
+    def on_train_end(self, logs={}):
+        "
+        Close the resources used to plot the grids.
+        :param logs:    (unused) Dictionary of loss/metrics value for the epoch
+        "
+        self.summary_writer.close()
+        plt.close(self.fig)
 
 def postprocess_for_grid_callback(input_images, predicted_images, gt_images):
     
@@ -25,11 +166,8 @@ callback_tb_grid = TensorBoardImageGridCallback(
     input_images=val_image_samples, target_images=val_gt_samples, 
     preprocess_fn=postprocess_for_grid_callback,
     tag=model_name + '_results', figsize=(15, 15))
+"""
 
-
-# Callback to simply log metrics at the end of each epoch (saving space compared to verbose=1):
-metrics_to_print = collections.OrderedDict([("loss", "loss"), ("v-loss", "val_loss"),
-                                            ("acc", "acc"), ("v-acc", "val_acc"),
-                                            ("mIoU", "mIoU"), ("v-mIoU", "val_mIoU")])
-
-callback_simple_log = SimpleLogCallback(metrics_to_print, num_epochs=num_epochs)
+#######################
+## Under development ##
+#######################

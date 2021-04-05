@@ -55,10 +55,11 @@ class BaseModel:
     ### Training
     def fit(self,
         dataset,
-        batch_size,
-        epochs,
+        batch_size= None,
+        epochs= 1,
         verbose=1,
         callbacks=None,
+        validation_split= 0.0,
         validation_data=None,
         initial_epoch=0,
         steps_per_epoch=None,
@@ -66,12 +67,13 @@ class BaseModel:
         validation_freq=1,):
 
         self.model.fit(
-            dataset,
+            x = dataset,
+            y = None,
             batch_size=batch_size,
             epochs=epochs,
             verbose=verbose,
             callbacks=callbacks,
-            validation_split=0.0,
+            validation_split=validation_split,
             validation_data=validation_data,
             shuffle=True,
             class_weight=None,
@@ -97,6 +99,6 @@ class BaseModel:
             overwrite= overwrite,
             save_format= save_format)
 
-    def __call__(self):
-        return self.model
+    def __call__(self, inputs):
+        return self.model(inputs)
 

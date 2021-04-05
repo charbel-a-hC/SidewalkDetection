@@ -12,7 +12,10 @@ class SegmentationDataset (Sequence):
         # Load the images and labels path to memory
         self.images, self.gt_segmentations = _get_paths(image_dir, label_dir)
 
-        self.batch_size= batch_size
+        if batch_size == -1:
+            self.batch_size= len(self.images)
+        else:
+            self.batch_size = batch_size
         self.augmentation = augmentation
         self.resize = resize
   

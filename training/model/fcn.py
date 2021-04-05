@@ -2,16 +2,15 @@ import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Conv2D, Conv2DTranspose, add
 
-
-from training.model.ConvBlock import Conv2Block, Conv3Block
-from training.model.fcnBlock import FCNBlock
+from training.model.convblock import Conv2Block, Conv3Block
+from training.model.fcnblock import FCNBlock
 
 class FCN (Model):
-    def __init__(self, name= "FCN", **kwargs):
+    def __init__(self, num_output_channels: int, name= "FCN", **kwargs):
         super(FCN, self).__init__(name= name, **kwargs)
+        self.num_output_channels = num_output_channels
 
     def build (self, input_shape):
-
         ### Encoder
         self.conv_2_block_1 = Conv2Block(64, 3, 1, "same", "conv_2_block_1")
         self.conv_2_block_2 = Conv2Block(128, 3, 1, "same", "conv_2_block_2")
@@ -20,20 +19,17 @@ class FCN (Model):
         self.conv_3_block_5 = Conv3Block(512, 3, 1, "same", "conv_3_block_5")
         
         ### Decoder
-        ###################################################
-        ## Adjust nb of output channels to nb of classes ##
-        ###################################################
-        self.fcn_block = FCNBlock(name= "FCNBlock")
-        self.conv_f4 = Conv2D(filters= ch_out, kernel_size= 1, padding= "same",
+        self.fcn_block = FCNBlock(num_output_channels= self.num_output_channels, name= "FCNBlock")
+        self.conv_f4 = Conv2D(filters= self.num_output_channels, kernel_size= 1, padding= "same",
                                 activation= None, name= "conv_f4")
-        self.conv_f3 = Conv2D(filters= ch_out, kernel_size= 1, padding= "same",
+        self.conv_f3 = Conv2D(filters= self.num_output_channels, kernel_size= 1, padding= "same",
                                 activation= None, name= "conv_f3")
         
-        self.conv_transpose_f4 = Conv2DTranspose(filters=ch_out, kernel_size=4, strides=2,
+        self.conv_transpose_f4 = Conv2DTranspose(filters=self.num_output_channels, kernel_size=4, strides=2,
                                 use_bias=False, padding='same', activation='relu', name= "conv_transpose_f3")
 
-        self.conv_transpose_f3 = Conv2DTranspose(filters=ch_out, kernel_size=16, strides=8,
-                              padding='same', activation=None, name= "conv_transpose_f3")
+        self.conv_transpose_f3 = Conv2DTranspose(filters=self.num_output_channels, kernel_size=16, strides=8,
+                              padding='same', activation="softmax", name= "conv_transpose_f3")
 
         super(FCN, self).build(input_shape)
 

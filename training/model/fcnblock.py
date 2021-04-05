@@ -2,18 +2,19 @@ import tensorflow as tf
 from tensorflow.keras.layers import Layer, Conv2D, Dropout, Conv2DTranspose
 
 class FCNBlock (Layer):
-    def __init__ (self, name= "FCNBlock", **kwargs):
+    def __init__ (self, num_output_channels, name= "FCNBlock", **kwargs):
         super(FCNBlock, self).__init__(name= name, **kwargs)
-    
+        self.num_output_channels = num_output_channels
+
     def build (self, input_shape):
         self.conv_1 = Conv2D(filters= 4086, kernel_size= 7, padding= "same", activation= "relu")
         self.dropout_1 = Dropout(0.5)
         self.conv_2 = Conv2D(filters= 4086, kernel_size= 1, padding="same",
                                 activation= "relu")
         self.dropout_2 = Dropout(0.5)
-        self.conv_3 = Conv2D(filters=ch_out, kernel_size=1, padding='same',
+        self.conv_3 = Conv2D(filters=self.num_output_channels, kernel_size=1, padding='same',
                       activation=None)
-        self.conv_transpose_1 = Conv2DTranspose(filters= ch_out, kernel_size= 4, strides= 2,
+        self.conv_transpose_1 = Conv2DTranspose(filters= self.num_output_channels, kernel_size= 4, strides= 2,
                                                 use_bias= False, padding= "same", activation= "relu")
         
         super(FCNBlock, self).build(input_shape)

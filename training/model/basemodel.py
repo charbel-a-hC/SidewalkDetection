@@ -1,21 +1,26 @@
+from hashlib import new
 from training.model.fcn import FCN
 from training.model.unet import Unet
 from training.weights.load_weights import load_vgg_weights
 
 import numpy as np 
 import tensorflow as tf
+from tensorflow.keras.datasets import mnist
+import cv2
 
 
 class BaseModel:
-    def __init__ (self, model_name= 'fcn', input_shape= None):
+    def __init__ (self, num_classes: int, input_shape= None, model_name= 'fcn'):
         self.model_name = model_name
         self.model = None
         self._make_model = False
+        
         self.input_shape = input_shape
-    
+        self.num_classes = num_classes
+
     def make_model(self):
         if self.model_name == 'fcn':
-            self.model = FCN()
+            self.model = FCN(num_output_channels= self.num_classes)
             self.model.build(input_shape= self.input_shape)
             self._make_model = True
         elif self.model_name == "unet":
@@ -33,16 +38,30 @@ class BaseModel:
                 layer.set_weights(weights[layer.name])
                 
     ### Compile
-    def compile(self, optimizer, loss, metrics, callbacks=None):
+    def compile(self,
+                optimizer= "rmsprop",
+                loss= None, 
+                metrics= None,
+                loss_weights= None,
+                sample_weight_mode= None,
+                weighted_metrics= None,
+                **kwargs):
+                
         self.model.compile(
             optimizer= optimizer,
             loss= loss,
-            metrics= metrics
+            mterics= metrics,
+            loss_weights= loss_weights,
+            sample_weight_mode= sample_weight_mode,
+            weighted_metrics= weighted_metrics,
+            **kwargs
         )
 
     ### Training
     def fit(self,
-        data_set,
+        x,
+        y,
+        batch_size,
         epochs,
         verbose=1,
         callbacks=None,
@@ -53,8 +72,9 @@ class BaseModel:
         validation_freq=1,):
 
         self.model.fit(
-            data_set,
-            batch_size=self.batch_size,
+            x,
+            y,
+            batch_size=batch_size,
             epochs=epochs,
             verbose=verbose,
             callbacks=callbacks,
@@ -74,19 +94,16 @@ class BaseModel:
     )
 
     ### Predict
-    
+    def predict(self, image):
+        return self.model.predict(image)
 
     ### Save weights
-
+    def save_weights(self, filepath, overwrite= None, save_format= None):
+        self.model.save_weights(
+            filepath= filepath,
+            overwrite= overwrite,
+            save_format= save_format)
 
     def __call__(self):
         return self.model
-
-with tf.device("CPU"):
-    model = BaseModel("fcn", (None, 96, 32, 3))
-    model.make_model()
-    model.summary()
-    file_ = "training/weights/vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5"
-    model.load_weights(file_)
-    
 

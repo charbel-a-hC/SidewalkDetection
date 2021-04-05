@@ -2,18 +2,25 @@ from tensorflow.keras.applications import VGG16
 from tensorflow.keras.layers import Input, Conv2D, Dropout, Flatten, Conv2DTranspose, UpSampling2D, add
 from tensorflow.keras.models import Model
 
+#################################
+#################################
+####### Under Development #######
+#################################
+#################################
+
 class Unet:
     def __init__ (self):
         self.a = 1
 
+"""
 def fcn_8s(image_size, ch_in=3, ch_out=3):
-    """
+    
     Build a FCN-8s Keras model, with the VGG-16 layers pretrained on ImageNet.
     :param image_size:  Image size (H x W)
     :param ch_in:       Number of input channels
     :param ch_out:      Number of output channels
     :return:            Keras model
-    """
+
     
     inputs = Input(shape=(*image_size, ch_in), name='input')
 
@@ -63,3 +70,4 @@ def fcn_8s(image_size, ch_in=3, ch_out=3):
     
     fcn8s_model = Model(inputs, outputs)
     return fcn8s_model
+"""

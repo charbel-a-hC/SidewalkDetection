@@ -16,3 +16,19 @@ class SegmentationAccuracy(tf.metrics.Accuracy):
         y_pred = tf.argmax(y_pred, axis=-1)
         
         return super().__call__(y_true, y_pred, sample_weight)
+
+class SegmentationMeanIoU(tf.metrics.MeanIoU):
+    def __init__(self, num_classes, ignore_value=CITYSCAPES_IGNORE_VALUE, name='mIoU', dtype=None):
+        super().__init__(num_classes=num_classes, name=name, dtype=dtype)
+        self.ignore_value = ignore_value
+        self.num_classes = num_classes
+
+    def __call__(self, y_true, y_pred, sample_weight=None):
+        y_true, y_pred = prepare_data_for_segmentation_loss(y_true, y_pred,
+                                                            num_classes=self.num_classes, 
+                                                            ignore_value=self.ignore_value)
+        # And since tf.metrics.mean_iou() needs the label maps, not the one-hot versions,
+        # we adapt accordingly:
+        y_pred = tf.argmax(y_pred, axis=-1)
+        
+        return super().__call__(y_true, y_pred, sample_weight)  

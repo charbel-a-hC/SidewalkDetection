@@ -29,7 +29,7 @@ class FCN (Model):
                                 use_bias=False, padding='same', activation='relu', name= "conv_transpose_f3")
 
         self.conv_transpose_f3 = Conv2DTranspose(filters=self.num_output_channels, kernel_size=16, strides=8,
-                              padding='same', activation="softmax", name= "conv_transpose_f3")
+                              padding='same', activation="sigmoid", name= "conv_transpose_f3")
 
         super(FCN, self).build(input_shape)
 

@@ -1,13 +1,8 @@
-from hashlib import new
+import tensorflow as tf
+
 from training.model.fcn import FCN
 from training.model.unet import Unet
 from training.weights.load_weights import load_vgg_weights
-
-import numpy as np 
-import tensorflow as tf
-from tensorflow.keras.datasets import mnist
-import cv2
-
 
 class BaseModel:
     def __init__ (self, num_classes: int, input_shape= None, model_name= 'fcn'):
@@ -50,7 +45,7 @@ class BaseModel:
         self.model.compile(
             optimizer= optimizer,
             loss= loss,
-            mterics= metrics,
+            metrics= metrics,
             loss_weights= loss_weights,
             sample_weight_mode= sample_weight_mode,
             weighted_metrics= weighted_metrics,
@@ -59,8 +54,7 @@ class BaseModel:
 
     ### Training
     def fit(self,
-        x,
-        y,
+        dataset,
         batch_size,
         epochs,
         verbose=1,
@@ -72,8 +66,7 @@ class BaseModel:
         validation_freq=1,):
 
         self.model.fit(
-            x,
-            y,
+            dataset,
             batch_size=batch_size,
             epochs=epochs,
             verbose=verbose,

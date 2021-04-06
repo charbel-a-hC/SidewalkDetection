@@ -1,14 +1,14 @@
-import os
+import random
 import collections
 import tensorflow as tf
-import matplotlib.pyplot as plt
 from training.data import SegmentationDataset
 from training.common import SegmentationLoss
+from training.common.metrics import SegmentationAccuracy
 
-class SimpleLogCallback(tf.keras.callbacks.Callback):
+class SegmentationLog(tf.keras.callbacks.Callback):
     """ Keras callback for simple, denser console logs."""
 
-    def __init__(self, metrics_dict, val= False, val_data: SegmentationDataset = None, num_epochs='?', log_frequency=1,
+    def __init__(self, metrics_dict, txt_log_path, val= False, val_data: SegmentationDataset = None, num_epochs='?', log_frequency=1,
                  metric_string_template='\033[1m[[name]]\033[0m = \033[94m{[[value]]:5.3f}\033[0m'):
         """
         Initialize the Callback.
@@ -40,6 +40,7 @@ class SimpleLogCallback(tf.keras.callbacks.Callback):
 
         self.val_data = val_data
         self.val = val
+        self.txt_log_path = txt_log_path
 
     def on_train_begin(self, logs=None):
         print("Training: \033[92mstart\033[0m.")
@@ -50,21 +51,25 @@ class SimpleLogCallback(tf.keras.callbacks.Callback):
 
     def on_epoch_end(self, epoch, logs={}):
         if self.val:
-            y_pred = self.model.predict(self.val_data[0][0][:self.val_data.batch_size, :, :])
-            y_true = self.val_data[0][1][:self.val_data.batch_size, :, :]
+            random_batch = random.randint(0, len(self.val_data)-1)
+            y_pred = self.model.predict(self.val_data[random_batch][0])
+            y_true = self.val_data[random_batch][1]
             total_loss = SegmentationLoss()(y_true= y_true, y_pred= y_pred)
+            accuracy = SegmentationAccuracy()(y_true= y_true, y_pred= y_pred)
 
             logs["val_loss"] = total_loss.numpy()
-            logs["val_acc"] = 12
-            
+            logs["val_acc"] = accuracy.numpy()
+
+        output = ""
+
         if (epoch - 1) % self.log_frequency == 0 or epoch == self.num_epochs:
             values = [logs[self.metrics_dict[metric_name]] for metric_name in self.metrics_dict]
-            print(self.log_string_template.format(epoch+1, self.num_epochs, *values))
+            output = self.log_string_template.format(epoch+1, self.num_epochs, *values)
+            print(output)
+
+        with open(f"{self.txt_log_path}/logs.txt", "a") as f:
+            f.writelines(f"Epoch {epoch+1}/{self.num_epochs}: loss= {self.metrics_dict['loss']}; val_loss= {logs['val_loss']}; accuracy= {self.metrics_dict['accuracy']}; val_acc= {logs['val_acc']}")
         
-
-
-
-
 
 #######################
 ## Under development ##

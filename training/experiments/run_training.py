@@ -1,4 +1,3 @@
-from training.common.metrics import SegmentationAccuracy
 import tensorflow as tf
 from tensorflow.keras.callbacks import EarlyStopping, TensorBoard, ModelCheckpoint
 from tensorflow.keras.metrics import MeanIoU, CategoricalAccuracy
@@ -6,7 +5,7 @@ import collections
 
 from training.data import SegmentationDataset
 from training.model import BaseModel
-from training.common import SegmentationLoss, SimpleLogCallback
+from training.common import SegmentationLoss, SegmentationLog
 
 ## Setup parser for running command line from CLI
 ## Test segmentationdatast outputs
@@ -24,7 +23,7 @@ val_image_dir = "/home/inmind/Documents/SidewalkDetection/dataset/val/image"
 val_seg_dir = "/home/inmind/Documents/SidewalkDetection/dataset/val/label"
 
 weights_path= "/home/inmind/Documents/SidewalkDetection/training/weights/vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5"
-num_epochs = 20
+num_epochs = 5
 batch_size = 5
 num_classes = 1
 
@@ -32,7 +31,7 @@ num_classes = 1
 with tf.device("CPU"):
     
     train_dataset = SegmentationDataset(image_dir= train_image_dir, label_dir= train_seg_dir, batch_size= batch_size, resize= (224, 224))
-    val_dataset = SegmentationDataset(image_dir= val_image_dir, label_dir= val_seg_dir, batch_size= -1, resize= (224, 224))
+    val_dataset = SegmentationDataset(image_dir= val_image_dir, label_dir= val_seg_dir, batch_size= 20, resize= (224, 224))
     
     model = BaseModel(num_classes, (None, 224, 224, 3))
     model.make_model()
@@ -47,13 +46,13 @@ with tf.device("CPU"):
         #EarlyStopping(patience= 8, monitor= "val_loss", restore_best_weights= True),
 
         # Callback to save the model specifying the epoch and val-loss 
-        #ModelCheckpoint(filepath= "training/logs/ckpts/weights-epoch{epoch:02d}-loss{val_loss:.2f}.h5", period= 5),
+        ModelCheckpoint(filepath= "training/experiments/logs/ckpts/weights-epoch{epoch:02d}.tf", period= 5),
 
         # Callback to log the graph, losses and metrics into tensorboard
-        #TensorBoard(log_dir= "training/logs/tensorboard", histogram_freq= 0, write_graph= True),
+        TensorBoard(log_dir= "training/logs/tensorboard", histogram_freq= 0, write_graph= True),
 
         # Callback to log metrics at end of each epoch (if verbose=0)
-        SimpleLogCallback(metrics_to_print, val= True,val_data= val_dataset, num_epochs=num_epochs)    
+        SegmentationLog(metrics_to_print, txt_log_path= "training/experiments/logs/", val= True,val_data= val_dataset, num_epochs=num_epochs)    
     ]
     
     
@@ -62,3 +61,5 @@ with tf.device("CPU"):
     model_history = model.fit(train_dataset, batch_size= 5, epochs= num_epochs, 
                             callbacks= callback, verbose= 0)
     
+
+    model.save_weights("training/experiments/logs/weights")

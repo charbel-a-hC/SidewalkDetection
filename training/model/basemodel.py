@@ -93,12 +93,23 @@ class BaseModel:
         return self.model.predict(image)
 
     ### Save weights
-    def save_weights(self, filepath, overwrite= None, save_format= None):
-        self.model.save_weights(
-            filepath= filepath,
-            overwrite= overwrite,
-            save_format= save_format)
+    def save(self,
+                filepath,
+                overwrite= True,
+                include_optimizer= True,
+                save_format= None,
+                signatures= None,
+                options= None):
+
+        self.model.save(filepath= filepath,
+                overwrite= overwrite,
+                include_optimizer= include_optimizer,
+                save_format= save_format,
+                signatures= signatures,
+                options= options
+                )
 
     def __call__(self, inputs):
         return self.model(inputs)
 
+None

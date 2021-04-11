@@ -111,5 +111,3 @@ class BaseModel:
 
     def __call__(self, inputs):
         return self.model(inputs)
-
-None

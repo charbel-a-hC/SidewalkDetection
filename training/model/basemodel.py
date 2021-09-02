@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from training.model.fcn import FCN
-from training.model.unet import Unet
+#from training.model.unet import Unet
 from training.weights.load_weights import load_vgg_weights
 
 class BaseModel:
@@ -19,7 +19,7 @@ class BaseModel:
             self.model.build(input_shape= self.input_shape)
             self._make_model = True
         elif self.model_name == "unet":
-            self.model = Unet()
+            #self.model = Unet()
             self.model.build(input_shape= self.input_shape)
 
     

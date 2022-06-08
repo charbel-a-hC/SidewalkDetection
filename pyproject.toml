@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "sidewalkdetection"
 version = "0.1.0"
-description = "Sidewalk Detection using image segmentation for autonomous robot navigation"
+description = "Sidewalk detection using image segmentation for autonomous robot navigation"
 authors = ["Charbel Abi Hana <charbel-a-h@outlook.com>"]
 
 [tool.poetry.dependencies]

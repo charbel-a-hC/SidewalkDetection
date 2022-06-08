@@ -16,7 +16,7 @@ train_seg_dir = "dataset/train/label"
 val_image_dir = "dataset/val/image"
 val_seg_dir = "dataset/val/label"
 
-weights_path= "/training/weights/vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5"
+weights_path= "training/weights/vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5"
 num_epochs = 10
 batch_size = 12
 num_classes = 1

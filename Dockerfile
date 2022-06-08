@@ -42,11 +42,12 @@ RUN python3 -m pip install --upgrade pip
 # Install poetry
 RUN curl -sSL https://install.python-poetry.org | python3 -
 ENV PATH=/root/.local/bin:$PATH
+ENV PYTHONPATH=.:$PYTHONPATH
 RUN poetry config virtualenvs.create false
 
 
 WORKDIR /SidewalkDetection
-#COPY pyproject.toml .
-#COPY Makefile .
-#RUN make env-docker
+COPY pyproject.toml .
+COPY Makefile .
+RUN make env-docker
 

@@ -8,6 +8,8 @@ authors = ["Charbel Abi Hana <charbel-a-h@outlook.com>"]
 python = "^3.7"
 tensorflow-gpu = "2.6"
 opencv-python = "4.4.0.44"
+scikit-image = "^0.19.2"
+matplotlib = "^3.5.2"
 
 [tool.poetry.dev-dependencies]
 

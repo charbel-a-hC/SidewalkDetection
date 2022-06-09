@@ -22,7 +22,7 @@ And you need to update your `pip`:
 If you have docker installed:
 ```bash
 docker build . -t sidewalk-detection
-docker run -it --rm -v --runtime=nvidia ${PWD}:/sidewalk-detection
+docker run -it --rm -v --runtime=nvidia ${PWD}:/SidewalkDetection
 ```
 ### Local Environment (Ubuntu-18.04) - Poetry
 

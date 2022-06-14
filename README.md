@@ -1,3 +1,9 @@
+# Sidwalk Detection
+This project is an implementation of image semantic segmentation where a robot detects the sidewalk on a pixel-level precision in order to enhance its navigation.
+
+## Repository Structure
+`dataset/train`: training data directory - 276 images with their lables (`dataset/train/image`, `dataset/train/label`). An instance of a dataset; label and raw image is shown below: ![image](https://user-images.githubusercontent.com/56930805/173704864-3f6410cd-de63-4ed8-9671-b7dddfea5950.png)
+`dataset/val`: validation data directory - 45 images with their labels. 
 
 ## Environment Setup
 

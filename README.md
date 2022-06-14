@@ -3,8 +3,11 @@ This project is an implementation of image semantic segmentation where a robot d
 
 ## Repository Structure
 `dataset/train`: training data directory - 276 images with their lables (`dataset/train/image`, `dataset/train/label`). An instance of a dataset; label and raw image is shown below: 
+<p align="center">
+    <img src="https://user-images.githubusercontent.com/56930805/173705012-57957a9e-78b8-4333-9624-292ba6a1e4f4.png"><br/>
+    <em>The highway-v0 environment.</em>
+</p>
 
-![image](https://user-images.githubusercontent.com/56930805/173705012-57957a9e-78b8-4333-9624-292ba6a1e4f4.png)
 
 `dataset/val`: validation data directory - 45 images with their labels. 
 `scripts`:

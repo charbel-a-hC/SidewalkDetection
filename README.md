@@ -1,4 +1,23 @@
+# Sidwalk Detection
+This project is an implementation of image semantic segmentation where a robot detects the sidewalk on a pixel-level precision in order to enhance its navigation.
 
+## Repository Structure
+`dataset/train`: training data directory - 276 images with their lables (`dataset/train/image`, `dataset/train/label`). An instance of a dataset; label and raw image is shown below: 
+<p align="center">
+    <img src="https://user-images.githubusercontent.com/56930805/173705012-57957a9e-78b8-4333-9624-292ba6a1e4f4.png"><br/>
+    <em>Raw Image with Sidewalk Segmentation - Overlay.</em>
+</p>
+
+
+`dataset/val`: validation data directory - 45 images with their labels. 
+`scripts`:
+`training`:
+
+## Running Training
+To run the training, you can run the following command:
+```python
+python3 training/experiments/run_training.py
+```
 ## Environment Setup
 
 Clone and `cd` in the repository before running any of the commands:
@@ -22,7 +41,7 @@ And you need to update your `pip`:
 If you have docker installed:
 ```bash
 docker build . -t sidewalk-detection
-docker run -it --rm -v --runtime=nvidia ${PWD}:/sidewalk-detection
+docker run -it --rm -v --runtime=nvidia ${PWD}:/SidewalkDetection
 ```
 ### Local Environment (Ubuntu-18.04) - Poetry
 

@@ -12,7 +12,7 @@ This project is an implementation of image semantic segmentation where a robot d
 `dataset/val`: validation data directory - 45 images with their labels. 
 `scripts`:
 `training`:
-
+`data_processing`: Data processing Notebook, some data visuals and dataset restructuring.
 ## Running Training
 To run the training, you can run the following command:
 ```python

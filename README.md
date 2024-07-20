@@ -68,4 +68,4 @@ conda activate base
 ```
 
 ### Google Colaboratory
-You can open the data processing notebook in Google Colab here: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](data_processing/DataProcessing - Sidewalk Detection.ipynb)
+You can open the data processing notebook in Google Colab here: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/charbel-a-hC/SidewalkDetection/blob/main/data_processing/DataProcessing%20-%20Sidewalk%20Detection.ipynb)
